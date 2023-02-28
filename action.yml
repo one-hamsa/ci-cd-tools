@@ -21,7 +21,6 @@ runs:
         echo "GITHUB_SERVER_URL: $GITHUB_SERVER_URL"
         echo "GITHUB_REPOSITORY: $GITHUB_REPOSITORY"
         echo "github.sha: ${{ github.sha }}"
-        echo "secrets.CHECKOUT_PAT: ${{ secrets.CHECKOUT_PAT }}"
         echo Configuring GitHub credentials...
         echo "https://x-access-token:${{ inputs.token }}@github.com" > ~/.git-credentials
         if [ -d .git ]
