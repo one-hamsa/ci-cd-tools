@@ -8,9 +8,11 @@ runs:
   using: "composite"
   steps:
     - name: Repo URL
+      id: vars
       run: |
         REPO_URL=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git
         echo "Repo URL: $REPO_URL"
+        echo "repo_url=$REPO_URL" >> $GITHUB_OUTPUT
       shell: bash
 
     - name: Configure GitHub credentials
@@ -26,11 +28,11 @@ runs:
           git reset --hard HEAD
           git clean -df
           echo Fetching...
-          git remote set-url origin $REPO_URL  # get rid of wrong credentials
+          git remote set-url origin ${{ steps.vars.outputs.repo_url }}  # get rid of wrong credentials
           git fetch
         else
           echo Cloning...
-          git clone $REPO_URL . \
+          git clone ${{ steps.vars.outputs.repo_url }} . \
             --no-checkout --depth 1
         fi
       shell: bash
