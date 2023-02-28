@@ -1,0 +1,44 @@
+name: "Checkout"
+description: "Clones a fresh or updates an existing repo"
+inputs:
+  repo-url:
+    required: true
+    description: "The URL of the repository"
+  token:
+    required: true
+    description: "The Personal Access Token for accessing the repository"
+  commit-sha:
+    required: true
+    description: "The commit SHA to be checked out"
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        echo "Repo URL: ${{ inputs.repo-url }}"
+        echo "token: ${{ inputs.token }}"
+        echo "commit-sha: ${{ inputs.commit-sha }}"
+        echo "GITHUB_SERVER_URL: $GITHUB_SERVER_URL"
+        echo "GITHUB_REPOSITORY: $GITHUB_REPOSITORY"
+        echo "github.sha: ${{ github.sha }}"
+        echo "secrets.CHECKOUT_PAT: ${{ secrets.CHECKOUT_PAT }}"
+        echo Configuring GitHub credentials...
+        echo "https://x-access-token:${{ inputs.token }}@github.com" > ~/.git-credentials
+        if [ -d .git ]
+        then
+          echo Resetting...
+          git rm --cached -r . || true  # necessary but may fail when no files
+          git reset --hard HEAD
+          git clean -df
+          echo Fetching...
+          git remote set-url origin ${{ inputs.repo-url }}  # get rid of wrong credentials
+          git fetch
+        else
+          echo Cloning...
+          git clone ${{ inputs.repo-url }} . \
+            --no-checkout --depth 1
+        fi
+        echo Checking out ${{ inputs.commit-sha }}...
+        git checkout ${{ inputs.commit-sha }}
+        git submodule update --init --depth 1
+        git status
