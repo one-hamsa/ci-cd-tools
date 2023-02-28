@@ -7,12 +7,18 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - shell: bash
+    - name: Repo URL
       run: |
         REPO_URL=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git
         echo "Repo URL: $REPO_URL"
-        echo Configuring GitHub credentials...
-        echo "https://x-access-token:${{ inputs.token }}@github.com" > ~/.git-credentials
+      shell: bash
+
+    - name: Configure GitHub credentials
+      run: echo "https://x-access-token:${{ inputs.token }}@github.com" > ~/.git-credentials
+      shell: bash
+
+    - name: Fetch or clone
+      run: |
         if [ -d .git ]
         then
           echo Resetting...
@@ -27,7 +33,18 @@ runs:
           git clone $REPO_URL . \
             --no-checkout --depth 1
         fi
+      shell: bash
+
+    - name: Checkout
+      run: |
         echo Checking out ${{ github.sha }}...
         git checkout ${{ github.sha }}
-        git submodule update --init --depth 1
-        git status
+      shell: bash
+
+    - name: Update submodules
+      run: git submodule update --init --depth 1
+      shell: bash
+
+    - name: Show status
+      run: git status
+      shell: bash
