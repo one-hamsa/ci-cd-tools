@@ -4,6 +4,9 @@ inputs:
   token:
     required: true
     description: "The Personal Access Token for accessing the repository"
+  clone-depth:
+    required: false
+    default: 16
 runs:
   using: "composite"
   steps:
@@ -34,7 +37,7 @@ runs:
         else
           echo Cloning...
           git clone ${{ steps.vars.outputs.repo_url }} . \
-            --no-checkout --depth 1
+            --no-checkout --depth ${{ inputs.clone-depth }}
         fi
       shell: bash
 
