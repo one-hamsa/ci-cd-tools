@@ -26,7 +26,7 @@ runs:
           echo Resetting...
           git rm --cached -r . || true  # necessary but may fail when no files
           git reset --hard HEAD
-          git clean -df
+          git clean -dfx
           git submodule foreach git reset --hard
           echo Fetching...
           git remote set-url origin ${{ steps.vars.outputs.repo_url }}  # get rid of wrong credentials
