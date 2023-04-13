@@ -48,7 +48,10 @@ runs:
       shell: bash
 
     - name: Update submodules
-      run: git submodule update --init --depth 1
+      run: |
+        git submodule sync
+        git submodule foreach --recursive "git fetch --depth 1"
+        git submodule update --init --recursive --force
       shell: bash
 
     - name: Show status
