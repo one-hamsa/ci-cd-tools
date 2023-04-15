@@ -24,9 +24,9 @@ runs:
       run: |
         # Set the output variable "git_exists" based on the presence of the .git directory
         if [ -d ".git" ]; then
-          echo "::set-output name=git_exists::true"
+          echo "{git_exists}={true}" >> $GITHUB_OUTPUT
         else
-          echo "::set-output name=git_exists::false"
+          echo "{git_exists}={false}" >> $GITHUB_OUTPUT
         fi
       shell: bash
 
