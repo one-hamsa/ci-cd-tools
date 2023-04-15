@@ -4,9 +4,6 @@ inputs:
   token:
     required: true
     description: "The Personal Access Token for accessing the repository"
-  clone-depth:
-    required: false
-    default: 16
 runs:
   using: "composite"
   steps:
@@ -22,36 +19,48 @@ runs:
       run: echo "https://x-access-token:${{ inputs.token }}@github.com" > ~/.git-credentials
       shell: bash
 
-    - name: Fetch or clone
+    - name: Check if .git directory exists
+      id: check-git
       run: |
-        if [ -d .git ]
-        then
-          echo Resetting...
-          git rm --cached -r . || true  # necessary but may fail when no files
-          git reset --hard HEAD
-          git clean -df
-          git submodule foreach git reset --hard
-          echo Fetching...
-          git remote set-url origin ${{ steps.vars.outputs.repo_url }}  # get rid of wrong credentials
-          git fetch
+        # Set the output variable "git_exists" based on the presence of the .git directory
+        if [ -d ".git" ]; then
+          echo "::set-output name=git_exists::true"
         else
-          echo Cloning...
-          git clone ${{ steps.vars.outputs.repo_url }} . \
-            --no-checkout --depth ${{ inputs.clone-depth }}
+          echo "::set-output name=git_exists::false"
         fi
       shell: bash
 
-    - name: Checkout
+    - name: Clone repository if not present
+      if: steps.check-git.outputs.git_exists == 'false'
       run: |
-        echo Checking out ${{ github.sha }}...
+        # Clone the repository with a shallow history and without submodules
+        git clone --depth 1 --no-single-branch ${{ steps.vars.outputs.repo_url }} .
+        # Fetch and checkout the specific commit
+        git fetch origin ${{ github.sha }}
         git checkout ${{ github.sha }}
+        # Initialize and update submodules to the specific commit
+        git submodule update --init --recursive
       shell: bash
 
-    - name: Update submodules
+    - name: Update repository if present
+      if: steps.check-git.outputs.git_exists == 'true'
       run: |
-        git submodule sync
-        git submodule foreach --recursive "git fetch --depth 1"
-        git submodule update --init --recursive --force
+        # Discard local changes in the main project
+        ###git rm --cached -r . || true  # necessary but may fail when no files
+        git reset --hard HEAD
+        git clean -fd
+        # Discard local changes in all submodules
+        git submodule foreach --recursive git reset --hard HEAD
+        git submodule foreach --recursive git clean -fd
+        # Get rid of wrong credentials
+        git remote set-url origin ${{ steps.vars.outputs.repo_url }}
+        # Fetch and checkout the specific commit
+        git fetch origin ${{ github.sha }}
+        git checkout ${{ github.sha }}
+        # Deinitialize, update, and reinitialize submodules
+        git submodule deinit --force --all
+        git submodule sync --recursive
+        git submodule update --init --recursive
       shell: bash
 
     - name: Show status
