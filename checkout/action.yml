@@ -10,18 +10,25 @@ runs:
     - name: Repo URL
       id: vars
       run: |
+        # Set remote repository URL
         REPO_URL=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git
         echo "Repo URL: $REPO_URL"
         echo "repo_url=$REPO_URL" >> $GITHUB_OUTPUT
       shell: bash
 
-    - name: Configure GitHub credentials
-      run: echo "https://x-access-token:${{ inputs.token }}@github.com" > ~/.git-credentials
+    - name: Configure Git
+      run: |
+        # Configure Git
+        echo Configuring GitHub credentials...
+        echo "https://x-access-token:${{ inputs.token }}@github.com" > ~/.git-credentials
+        echo Disabling 'detached HEAD' warning...
+        git config advice.detachedHead false
       shell: bash
 
-    - name: Check if .git directory exists
+    - name: Check if local repo exists
       id: check-git
       run: |
+        # Check if local repository exists
         # Set the output variable "git_exists" based on the presence of the .git directory
         if [ -d ".git" ]; then
           echo "git_exists=true" >> $GITHUB_OUTPUT
@@ -33,33 +40,49 @@ runs:
     - name: Clone repository if not present
       if: steps.check-git.outputs.git_exists == 'false'
       run: |
+        # Clone repository
         # Clone the repository with a shallow history and without submodules
+        echo Cloning...
         git clone --depth 1 --no-single-branch ${{ steps.vars.outputs.repo_url }} .
         # Fetch and checkout the specific commit
+        echo Fetching...
         git fetch origin ${{ github.sha }}
+        echo Checking out...
         git checkout ${{ github.sha }}
         # Initialize and update submodules to the specific commit
+        echo Updating submodules...
         git submodule update --init --recursive
       shell: bash
 
     - name: Update repository if present
       if: steps.check-git.outputs.git_exists == 'true'
       run: |
+        # Update repository
         # Discard local changes in the main project
         ###git rm --cached -r . || true  # necessary but may fail when no files
+        echo Resetting...
         git reset --hard HEAD
+        echo Cleaning...
         git clean -fd
         # Discard local changes in all submodules
+        echo Resetting submodules...
         git submodule foreach --recursive git reset --hard HEAD
+        echo Cleaning submodules...
         git submodule foreach --recursive git clean -fd
         # Get rid of wrong credentials
+        echo Ensuring correct remote URL...
         git remote set-url origin ${{ steps.vars.outputs.repo_url }}
         # Fetch and checkout the specific commit
+        echo Fetching...
         git fetch origin ${{ github.sha }}
+        echo Checking out commit...
         git checkout ${{ github.sha }}
-        # Deinitialize, update, and reinitialize submodules
+        # Deinitialize, update and reinitialize submodules
+        echo Deinitializing submodules...
         git submodule deinit --force --all
+        echo Syncing submodules...
         git submodule sync --recursive
+        # Updating and reinitializing submodules...
         git submodule update --init --recursive
       shell: bash
 
