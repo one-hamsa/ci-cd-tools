@@ -21,8 +21,8 @@ runs:
         # Configure Git
         echo Configuring GitHub credentials...
         echo "https://x-access-token:${{ inputs.token }}@github.com" > ~/.git-credentials
-        echo Disabling 'detached HEAD' warning...
-        git config advice.detachedHead false
+        # echo Disabling detached HEAD warning...
+        # git config advice.detachedHead false
       shell: bash
 
     - name: Check if local repo exists
