@@ -7,10 +7,17 @@ inputs:
     required: true
     default: 'quest'
     # options: ['quest', 'steamvr', 'viveport'] # TBD - see upload.py -h
+  env:
+    description: 'The environment to deploy to'
+    required: true
+    default: 'INVALID'
+    # type: choice
+    # options: ["DEVELOPMENT", "PRODUCTION", "STAGING"]
   additional_args:
     description: 'Additional arguments to pass to upload.py'
     required: false
     default: ''
+
 runs:
   using: "composite"
   steps:
@@ -22,4 +29,4 @@ runs:
     - name: Deploy to ${{ inputs.vr_platform }} install-cli ${{ inputs.vr_platform }}
       shell : bash
       run: |
-        python3 vr-platforms-deploy/upload.py ${{ inputs.vr_platform }} --wine64 ${{ inputs.additional_args }}
+        python3 vr-platforms-deploy/upload.py --env --wine64 ${{ inputs.env }} ${{ inputs.vr_platform }} ${{ inputs.additional_args }}
