@@ -1,0 +1,25 @@
+name: Deploy To VR Platform ⬆️
+description: Deploy To VR Platforms
+
+inputs:
+  vr_platform:
+    description: 'The VR platform to deploy to'
+    required: true
+    default: 'quest'
+    # options: ['quest', 'steamvr', 'viveport'] # TBD - see upload.py -h
+  additional_args:
+    description: 'Additional arguments to pass to upload.py'
+    required: false
+    default: ''
+runs:
+  using: "composite"
+  steps:
+    - name: Installing dependencies for ${{ inputs.vr_platform }}
+      shell : bash
+      run: |
+        python3 -m pip install -r vr-platforms-deploy/requirements.txt
+        python3 vr-platforms-deploy/upload.py 
+    - name: Deploy to ${{ inputs.vr_platform }} install-cli ${{ inputs.vr_platform }}
+      shell : bash
+      run: |
+        python3 vr-platforms-deploy/upload.py ${{ inputs.vr_platform }} --wine64 --env ${{ inputs.additional_args }}
