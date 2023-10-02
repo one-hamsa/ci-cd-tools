@@ -1,0 +1,3 @@
+[submodule "vr-platforms-deploy"]
+	path = vr-platforms-deploy
+	url = https://github.com/one-hamsa/vr-platforms-deploy.git
