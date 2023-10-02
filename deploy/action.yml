@@ -22,4 +22,4 @@ runs:
     - name: Deploy to ${{ inputs.vr_platform }} install-cli ${{ inputs.vr_platform }}
       shell : bash
       run: |
-        python3 vr-platforms-deploy/upload.py ${{ inputs.vr_platform }} --wine64 --env ${{ inputs.additional_args }}
+        python3 vr-platforms-deploy/upload.py ${{ inputs.vr_platform }} --wine64 ${{ inputs.additional_args }}
