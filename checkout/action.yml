@@ -58,8 +58,8 @@ runs:
       if: steps.check-git.outputs.git_exists == 'true'
       run: |
         # Update repository
-        # remove index.lock if it exists
-        rm -f .git/index.lock
+        # remove index.lock files if exist
+        find . -type f -name 'index.lock' -exec rm -f {} \;
         # Discard local changes in the main project
         ###git rm --cached -r . || true  # necessary but may fail when no files
         echo Resetting...
